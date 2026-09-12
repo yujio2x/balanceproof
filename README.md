@@ -21,13 +21,15 @@ the statement's running balance, and exports ready-to-import files.
 
 ## Free vs Pro
 
-| | Free | Pro ($39, one-time) |
+Your **first statement converts in full, free** — any page count, all export formats — so you can
+prove the tool works before paying anything.
+
+| | Free (after first statement) | Pro ($39, one-time) |
 |---|---|---|
 | Statements | unlimited | unlimited |
 | Pages per statement | 3 | unlimited |
 | CSV / JSON export | ✓ | ✓ |
-| QuickBooks CSV / .qbo / OFX / Xero | — | ✓ |
-| Future bank-profile updates | — | ✓ |
+| QuickBooks CSV / .qbo / OFX / Xero | first statement only | ✓ |
 
 Pro is a plain offline license key (`BP1.…`) verified with an embedded ECDSA P-256 public key —
 no account, no activation server, works offline. Payment is not wired up in this MVP yet (see

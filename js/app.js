@@ -8,6 +8,8 @@
   var P = window.BPParser, E = window.BPExport, L = window.BPLicense;
   var FREE_PAGE_LIMIT = 3;
   var LS_KEY = 'bp_pro_license_v1';
+  var LS_TRIAL = 'bp_free_full_used_v1';
+  var ISSUES_URL = 'https://github.com/yujio2x/balanceproof/issues/new';
 
   // ---------- state ----------
   var state = {
@@ -163,13 +165,15 @@
 
   // ---------- rendering ----------
   function renderBadge() {
-    badgeEl.className = 'verify-badge ' + (state.verified === true ? 'ok' : state.verified === false ? 'warn' : 'unknown');
     if (state.verified === true) {
+      badgeEl.className = 'verify-badge ok';
       badgeEl.textContent = '✓ Reconciles — every row checks out';
     } else if (state.verified === false) {
+      badgeEl.className = 'verify-badge warn';
       badgeEl.textContent = '⚠ ' + state.mismatched + ' row' + (state.mismatched === 1 ? '' : 's') + ' don\u2019t reconcile';
     } else {
-      badgeEl.textContent = '— No running balance on this statement';
+      badgeEl.className = 'verify-badge warn';
+      badgeEl.textContent = '⚠ No running balance on this statement — double-check rows before importing';
     }
   }
 
@@ -178,11 +182,23 @@
     var credits = 0, debits = 0;
     rows.forEach(function (r) { if (r.amount > 0) credits += r.amount; else debits += r.amount; });
     var t = state.rows.length + ' transaction' + (state.rows.length === 1 ? '' : 's');
-    if (state.lockedPages) t += ' (free preview of page 1)';
+    if (state.lockedPages) t += ' (free preview)';
     var bits = ['Detected: ' + (state.profile || 'unknown layout'), t, 'In: ' + fmtMoney(credits), 'Out: ' + fmtMoney(debits)];
     if (state.opening != null && state.closing != null) bits.push('Opening ' + fmtMoney(state.opening) + ' → Closing ' + fmtMoney(state.closing));
     if (state.inverted) bits.push('signs auto-corrected (debits print positive)');
+    if (state.fullTrial) bits.push('first statement: full free conversion');
     metaEl.textContent = bits.join(' · ');
+    // privacy-safe layout report: metadata only, never transaction data
+    var rl = $('report-layout');
+    if (rl) {
+      var body = 'Bank / layout: \n\nWhat looked wrong:\n\n' +
+        '--- automatic info (no transaction data) ---\n' +
+        'profile: ' + (state.profile || 'unknown') + '\n' +
+        'pages: ' + state.pageCount + ' (parsed ' + (state.rows.length) + ' rows, preview=' + (state.lockedPages > 0) + ')\n' +
+        'verified: ' + state.verified + ' (mismatched: ' + state.mismatched + ')\n' +
+        'unparsed lines: ' + state.unparsed.length + '\n';
+      rl.href = ISSUES_URL + '?title=' + encodeURIComponent('Layout report: <bank name>') + '&body=' + encodeURIComponent(body);
+    }
   }
 
   function renderWarnings() {
@@ -284,11 +300,13 @@
   }
 
   function renderPro() {
+    var unlocked = state.pro || state.fullTrial;
     document.querySelectorAll('[data-pro]').forEach(function (btn) {
-      btn.classList.toggle('pro-unlocked', state.pro);
+      btn.classList.toggle('pro-unlocked', unlocked);
     });
-    var upgradeLinks = document.querySelectorAll('#locked-upgrade');
-    upgradeLinks.forEach(function (b) { b.textContent = state.pro ? 'License active ✓' : 'I have a license — unlock'; });
+    document.querySelectorAll('#locked-upgrade').forEach(function (b) {
+      b.textContent = state.pro ? 'License active ✓' : 'I have a license — unlock';
+    });
   }
 
   function renderAll() {
@@ -305,6 +323,11 @@
     hide(resultEl); hide(lockedEl);
     setStatus('Reading ' + file.name + '…');
 
+    // first-ever conversion is a complete free trial: any page count, all formats
+    var trialUsed = false;
+    try { trialUsed = !!localStorage.getItem(LS_TRIAL); } catch (e) { /* private mode */ }
+    state.fullTrial = !state.pro && !trialUsed;
+
     extractPdf(file,
       function (page, total) { setStatus('Extracting text… page ' + page + ' of ' + total); },
       function (pages, numPages) {
@@ -315,9 +338,12 @@
         }
         state.fileName = file.name;
         state.pageCount = numPages;
-        state.lockedPages = Math.max(0, numPages - FREE_PAGE_LIMIT);
+        state.lockedPages = (state.pro || state.fullTrial) ? 0 : Math.max(0, numPages - FREE_PAGE_LIMIT);
         var parseText = state.lockedPages > 0 ? pages.slice(0, FREE_PAGE_LIMIT).join('\n') : allText;
         applyParse(parseText, state.lockedPages > 0);
+        if (state.fullTrial && state.rows.length) {
+          try { localStorage.setItem(LS_TRIAL, '1'); } catch (e) { /* private mode */ }
+        }
       },
       function (msg) { setStatus(msg, true); }
     );
@@ -355,8 +381,8 @@
 
   function doExport(kind) {
     if (!state.rows.length) return;
-    if (kind !== 'csv' && kind !== 'json' && !state.pro) {
-      openLicensePanel('This export format needs Pro.');
+    if (kind !== 'csv' && kind !== 'json' && !state.pro && !state.fullTrial) {
+      openLicensePanel('This export format needs Pro. (Your first statement converted in full — unlimited use needs a license.)');
       return;
     }
     var df = $('opt-datefmt').value;

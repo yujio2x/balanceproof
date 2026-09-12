@@ -27,11 +27,12 @@
 <main id="top">
   <section class="hero">
     <div class="container">
-      <h1>Bank statement PDFs → clean, <em>verified</em> CSV. Without uploading them to anyone.</h1>
+      <h1>Bank statement PDFs → clean, <em>balance-verified</em> CSV. Without uploading them to anyone.</h1>
       <p class="hero-sub">
         For bookkeepers, accountants and business owners who receive statements as PDFs.
         BalanceProof reads the transactions, checks them against the statement's running balance,
         and exports ready-to-import files. Everything runs locally in your browser — the PDF never leaves your computer.
+        When a statement has no balance column, verification is skipped and it says so.
       </p>
       <div class="hero-points">
         <span>✓ Files never uploaded</span>
@@ -48,7 +49,7 @@
       <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Drop a bank statement PDF here or click to choose a file">
         <div class="dz-icon" aria-hidden="true">📄</div>
         <p class="dz-title">Drop a bank statement PDF here</p>
-        <p class="dz-sub">or click to choose a file — it is processed on this device only</p>
+        <p class="dz-sub">or click to choose a file — it is processed on this device only. Your first statement converts in full, free.</p>
         <input type="file" id="file-input" accept="application/pdf,.pdf" hidden>
       </div>
 
@@ -75,7 +76,8 @@
             <tbody id="txn-body"></tbody>
           </table>
         </div>
-        <p class="table-hint">Click any cell to fix it. Reconciliation re-checks automatically.</p>
+        <p class="table-hint">Click any cell to fix it. Reconciliation re-checks automatically.
+          <a id="report-layout" href="#" target="_blank" rel="noopener">Statement read wrong? Report this layout →</a></p>
 
         <div class="export-bar">
           <label class="opt">
@@ -113,10 +115,9 @@
       </div>
 
       <div id="locked" class="locked" hidden>
-        <p><strong>This PDF has more than 3 pages.</strong> The free version converts up to 3 pages per statement.
-        Unlock unlimited pages and QuickBooks/OFX/Xero exports with a Pro license.</p>
+        <p id="locked-text"><strong>This statement has more than 3 pages.</strong> Your first statement converts in full and free — this one needs Pro for unlimited pages.</p>
         <button class="btn btn-primary" id="locked-upgrade">I have a license — unlock</button>
-        <button class="btn" id="locked-continue">Continue with page 1 preview</button>
+        <button class="btn" id="locked-continue">Continue with the first pages</button>
       </div>
 
     </div>
@@ -141,23 +142,23 @@
           <h3>Free</h3>
           <p class="price">$0</p>
           <ul>
-            <li>Unlimited statements</li>
-            <li>Up to 3 pages per statement</li>
-            <li>CSV &amp; JSON export</li>
+            <li><strong>First statement converts in full</strong> — any page count, all export formats</li>
+            <li>After that: statements up to 3 pages, CSV &amp; JSON export</li>
             <li>Running-balance verification</li>
             <li>No signup, no upload</li>
           </ul>
         </div>
         <div class="plan plan-pro">
           <h3>Pro <span class="pro-tag">one-time</span></h3>
-          <p class="price">$39 <span class="price-note">once, not a subscription</span></p>
+          <p class="price">$39 <span class="price-note">once — for the tool, not a subscription</span></p>
           <ul>
-            <li>Unlimited pages per statement</li>
-            <li>QuickBooks .qbo &amp; QuickBooks CSV</li>
+            <li>Unlimited pages on every statement</li>
+            <li>QuickBooks .qbo (Desktop) &amp; QuickBooks Online CSV</li>
             <li>OFX &amp; Xero CSV export</li>
-            <li>All future bank-profile updates</li>
+            <li>License works offline, on this device, forever</li>
           </ul>
-          <p class="early-bird"><strong>Early access:</strong> the first 20 users get a Pro license free in exchange for honest feedback. <a href="#license-panel">Claim yours below.</a></p>
+          <p class="early-bird"><strong>Early access:</strong> the first 20 users get a Pro license free in exchange for honest feedback.
+            <a href="https://github.com/yujio2x/balanceproof/issues/new?title=Early%20access" target="_blank" rel="noopener">Open an “Early access” issue</a> and your key will be sent to you.</p>
         </div>
       </div>
 
@@ -179,17 +180,17 @@
 
       <details>
         <summary>Do my files really stay on my computer?</summary>
-        <p>Yes. BalanceProof is a static web app: the PDF is read and parsed by JavaScript running in your browser tab. There is no server to upload to. You can confirm this yourself: open your browser DevTools → Network tab, convert a statement, and you will see zero requests carrying file data. After the page loads, you can even go offline and keep converting.</p>
+        <p>Yes. BalanceProof is a static web app: the PDF is read and parsed by JavaScript running in your browser tab. There is no server to upload to. And because the whole tool is <a href="https://github.com/yujio2x/balanceproof" target="_blank" rel="noopener">open source (MIT)</a>, you don't have to take our word for it — the code that handles your statement is public. After the page loads you can even go offline and keep converting.</p>
       </details>
 
       <details>
         <summary>Which banks are supported?</summary>
-        <p>BalanceProof uses layout-agnostic parsing tuned for common US (MM/DD/YYYY) and UK (DD/MM/YYYY) statement layouts, including card statements without a running balance. If your statement has a running-balance column, every parsed row is mathematically re-checked, so you know immediately whether it read correctly. Unrecognized lines are always shown so nothing is silently dropped.</p>
+        <p>BalanceProof parses common US (MM/DD/YYYY) and UK (DD/MM/YYYY) statement and card layouts, rather than one hardcoded list of banks. Every statement with a running-balance column is checked mathematically: if the parsed rows reconstruct the balance to the penny, you see a green “reconciles” badge; if not, the wrong rows are highlighted. Coverage grows from user reports — if your bank's layout reads wrong, <a href="https://github.com/yujio2x/balanceproof/issues/new?title=Layout%20report" target="_blank" rel="noopener">report it</a> and it gets fixed.</p>
       </details>
 
       <details>
         <summary>My PDF is a scan / photo. Does it work?</summary>
-        <p>No — scanned statements are images and contain no text to extract. BalanceProof deliberately does not send your documents to an OCR cloud. Print-quality text PDFs downloaded from online banking work.</p>
+        <p>No — scanned statements are images with no text to extract, and running OCR would require a server, which would break the privacy model. Text-based PDFs downloaded from online banking work. If your bank only sends scans, ask them for a digital statement export, or try your bank's website — most offer PDF downloads with selectable text.</p>
       </details>
 
       <details>
@@ -212,7 +213,10 @@
 
 <footer class="site-footer">
   <div class="container">
-    <p>BalanceProof — built by yujio2x-industries. Code: MIT license. No files, accounts, or analytics leave your device.</p>
+    <p>BalanceProof — an open-source tool by <a href="https://github.com/yujio2x" target="_blank" rel="noopener">yujio2x</a> (yujio2x-industries).
+    Code: <a href="https://github.com/yujio2x/balanceproof" target="_blank" rel="noopener">github.com/yujio2x/balanceproof</a> (MIT) ·
+    Problems or questions: <a href="https://github.com/yujio2x/balanceproof/issues" target="_blank" rel="noopener">open an issue</a>.
+    No files, accounts, or analytics leave your device.</p>
   </div>
 </footer>
 
