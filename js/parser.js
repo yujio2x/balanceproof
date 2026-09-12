@@ -302,7 +302,7 @@
       return {
         profile: null, rows: [], opening: null, closing: null, verified: null,
         reconciled: 0, mismatched: 0, unparsed: lines, periodYear: null,
-        warnings: ['No recognizable transaction lines were found. If this is a scanned/image PDF, text extraction is not possible — this tool works on text-based PDFs only.'],
+        warnings: ['No recognizable transaction lines were found. Either this document is not a bank statement, or it is a scanned image without a text layer (scans are not supported — use text PDFs from online banking).'],
         totals: { credits: 0, debits: 0, net: 0 }
       };
     }
