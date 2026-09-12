@@ -5,7 +5,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.join(__dirname, '..', 'products', 'balanceproof');
+const ROOT = path.join(__dirname, '..');
 const PORT = Number(process.argv[2] || 8787);
 
 const MIME = {
@@ -26,7 +26,7 @@ http.createServer(function (req, res) {
   if (!fp.startsWith(ROOT)) { res.writeHead(403); res.end('forbidden'); return; }
   fs.readFile(fp, function (err, data) {
     if (err) { res.writeHead(404); res.end('not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(fp)] || 'application/octet-stream' });
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(fp)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
     res.end(data);
   });
 }).listen(PORT, '127.0.0.1', function () {
