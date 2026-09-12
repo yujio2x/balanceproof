@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const FXDIR = path.join(ROOT, 'products', 'balanceproof', 'test', 'fixtures');
+const FXDIR = path.join(ROOT, 'test', 'fixtures');
 
 function esc(s) { return s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'); }
 
@@ -58,7 +58,7 @@ function buildPdf(lines) {
   return out + bodyStr + xref + trailer;
 }
 
-['us_checking.txt', 'uk_current.txt', 'card_nobalance.txt', 'business_crdramt.txt'].forEach(function (f) {
+['us_checking.txt', 'uk_current.txt', 'card_nobalance.txt', 'business_crdramt.txt', 'long_statement.txt'].forEach(function (f) {
   const text = fs.readFileSync(path.join(FXDIR, f), 'utf8');
   const lines = text.split('\n').filter(function (l) { return l.trim().length; });
   const pdf = buildPdf(lines);

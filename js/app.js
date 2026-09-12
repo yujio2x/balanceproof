@@ -397,7 +397,8 @@
       if (res.ok) {
         try { localStorage.setItem(LS_KEY, key); } catch (e) { /* private mode */ }
         setPro(true);
-        licenseStatus.textContent = '✓ Pro unlocked' + (res.email ? ' — licensed to ' + res.email : '');
+        licenseStatus.textContent = '✓ Pro unlocked' + (res.email ? ' — licensed to ' + res.email : '')
+          + (state.lockedPages > 0 ? ' — open your PDF again to convert all pages.' : '');
         licenseStatus.className = 'license-status ok';
         hide(lockedEl);
       } else {
